@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SeatSync Pro | School Play</title>
+    <title>SeatSync Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .seat { transition: all 0.2s ease; cursor: pointer; }
@@ -17,90 +17,66 @@
 
     <nav class="bg-purple-800 text-white p-4 shadow-xl sticky top-0 z-40">
         <div class="container mx-auto flex justify-between items-center">
-            <div class="flex items-center gap-2">
-                <div class="bg-white text-purple-800 p-1 rounded-lg font-black">SS</div>
-                <h1 class="text-xl font-bold tracking-tighter">SEATSYNC</h1>
-            </div>
-            <div class="flex gap-4 text-sm font-medium">
-                <button id="nav-reserve" class="hover:text-purple-200">Reserve</button>
-                <button id="nav-admin" class="bg-purple-700 px-3 py-1 rounded-md hover:bg-purple-600">Admin</button>
+            <h1 class="text-xl font-bold tracking-tighter">SEATSYNC</h1>
+            <div class="flex gap-4">
+                <button id="nav-reserve" class="text-sm">Reserve</button>
+                <button id="nav-admin" class="bg-purple-700 px-3 py-1 rounded-md text-sm">Admin</button>
             </div>
         </div>
     </nav>
 
-    <main class="container mx-auto p-4 md:p-8">
-        
+    <main class="container mx-auto p-8">
         <section id="booking-section">
-            <div class="text-center mb-8">
-                <h2 class="text-3xl font-black mb-2">School Play 2026</h2>
-                <p class="text-slate-500">Select seats on the map below.</p>
+            <div class="max-w-md mx-auto mb-10 text-center">
+                <div class="w-full h-8 bg-slate-800 rounded-t-2xl flex items-center justify-center text-white text-[10px] tracking-[0.4em] font-bold uppercase">Stage</div>
+                <div class="h-12 stage-glow w-full mb-4"></div>
+                <h2 class="text-2xl font-black">Select Your Seats</h2>
             </div>
-
-            <div class="max-w-md mx-auto mb-10">
-                <div class="w-full h-8 bg-slate-800 rounded-t-2xl flex items-center justify-center text-white text-[10px] tracking-[0.4em] font-bold">STAGE</div>
-                <div class="h-12 stage-glow w-full"></div>
-            </div>
-
             <div class="bg-white p-6 rounded-3xl shadow-xl max-w-2xl mx-auto border border-slate-200">
-                <div id="seating-grid" class="grid grid-cols-8 gap-3 justify-items-center">
-                    </div>
+                <div id="seating-grid" class="grid grid-cols-8 gap-3 justify-items-center"></div>
             </div>
         </section>
 
         <section id="admin-section" class="hidden">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-black">Sales Report</h2>
-                <button id="btn-reset" class="text-red-500 text-xs border border-red-200 px-2 py-1 rounded">Reset System</button>
-            </div>
-            <div class="grid grid-cols-2 gap-4">
+            <h2 class="text-2xl font-black mb-6">Admin Dashboard</h2>
+            <div class="grid grid-cols-2 gap-4 mb-6">
                 <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-purple-600">
-                    <p class="text-slate-400 text-xs font-bold uppercase">Total Revenue</p>
-                    <p class="text-3xl font-black text-purple-900">$<span id="report-revenue">0</span></p>
+                    <p class="text-slate-400 text-xs font-bold uppercase">Revenue</p>
+                    <p class="text-3xl font-black">$<span id="report-revenue">0</span></p>
                 </div>
                 <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-slate-800">
-                    <p class="text-slate-400 text-xs font-bold uppercase">Seats Sold</p>
+                    <p class="text-slate-400 text-xs font-bold uppercase">Sold</p>
                     <p class="text-3xl font-black" id="report-count">0</p>
                 </div>
             </div>
+            <button id="btn-reset" class="text-red-500 text-xs hover:underline">Reset All Data</button>
         </section>
     </main>
 
-    <div id="purchase-bar" class="hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 shadow-2xl z-50">
+    <div id="purchase-bar" class="hidden fixed bottom-0 left-0 right-0 bg-white border-t p-4 shadow-2xl z-50">
         <div class="container mx-auto flex justify-between items-center">
             <div>
-                <p class="text-slate-500 text-[10px] font-bold uppercase">Selected</p>
-                <p id="selected-list-text" class="text-purple-700 font-black">-</p>
+                <p id="selected-list-text" class="text-purple-700 font-black text-sm">Selected: -</p>
+                <p class="text-slate-900 font-black text-xl">$<span id="bar-total">0</span></p>
             </div>
-            <div class="flex items-center gap-6">
-                <div class="text-right">
-                    <p class="text-slate-500 text-[10px] font-bold uppercase">Total Price</p>
-                    <p class="text-2xl font-black">$<span id="bar-total">0</span></p>
-                </div>
-                <button id="btn-checkout" class="bg-purple-600 text-white px-8 py-3 rounded-xl font-black hover:bg-purple-700 shadow-lg">PURCHASE</button>
-            </div>
+            <button id="btn-checkout" class="bg-purple-600 text-white px-10 py-3 rounded-xl font-black hover:bg-purple-700 transition-all">PURCHASE</button>
         </div>
     </div>
 
     <div id="booking-modal" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden">
+        <div class="bg-white rounded-3xl max-w-md w-full overflow-hidden">
             <div class="bg-purple-700 p-6 text-white text-center">
-                <h3 class="text-2xl font-black">Final Details</h3>
-                <p class="text-purple-200 text-sm"><span id="modal-seat-count">0</span> Seats Selected</p>
+                <h3 class="text-2xl font-black">Final Step</h3>
+                <p class="text-sm opacity-80">Booking <span id="modal-seat-count">0</span> seats</p>
             </div>
             <div class="p-6 space-y-4">
-                <input type="text" id="user-name" placeholder="Contact Name" class="w-full border-2 border-slate-100 rounded-xl p-3 outline-none focus:border-purple-500">
-                <div class="flex gap-4">
-                    <div class="flex-1">
-                        <label class="text-[10px] font-bold text-slate-500">ADULTS</label>
-                        <input type="number" id="adult-count" value="1" min="0" class="w-full border-2 border-slate-100 rounded-xl p-2">
-                    </div>
-                    <div class="flex-1">
-                        <label class="text-[10px] font-bold text-slate-500">CHILDREN</label>
-                        <input type="number" id="child-count" value="0" min="0" class="w-full border-2 border-slate-100 rounded-xl p-2">
-                    </div>
+                <input type="text" id="user-name" placeholder="Contact Name" class="w-full border-2 p-3 rounded-xl outline-none focus:border-purple-500">
+                <div class="flex gap-4 text-center">
+                    <div class="flex-1"><label class="text-[10px] font-bold uppercase">Adults</label><input type="number" id="adult-count" value="1" class="w-full border-2 p-2 rounded-lg"></div>
+                    <div class="flex-1"><label class="text-[10px] font-bold uppercase">Children</label><input type="number" id="child-count" value="0" class="w-full border-2 p-2 rounded-lg"></div>
                 </div>
                 <button id="btn-confirm" class="w-full bg-purple-600 text-white font-black py-4 rounded-2xl hover:bg-purple-700">PAY & CONFIRM</button>
-                <button id="btn-cancel" class="w-full text-slate-400 text-sm font-medium">Cancel</button>
+                <button id="btn-cancel" class="w-full text-slate-400 text-sm">Go Back</button>
             </div>
         </div>
     </div>
@@ -109,7 +85,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc, getDocs, onSnapshot, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // --- PASTE YOUR CONFIG HERE ---
+        // --- PASTE YOUR ACTUAL CONFIG HERE ---
         const firebaseConfig = {
             apiKey: "YOUR_API_KEY",
             authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
@@ -126,116 +102,95 @@
         let selectedSeats = [];
         let occupiedFromDB = [];
 
-        // UI Switches
-        document.getElementById('nav-reserve').onclick = () => {
-            document.getElementById('booking-section').classList.remove('hidden');
-            document.getElementById('admin-section').classList.add('hidden');
-        };
-        document.getElementById('nav-admin').onclick = () => {
-            document.getElementById('booking-section').classList.add('hidden');
-            document.getElementById('admin-section').classList.remove('hidden');
-        };
+        // UI Helpers
+        const show = (id) => document.getElementById(id).classList.remove('hidden');
+        const hide = (id) => document.getElementById(id).classList.add('hidden');
 
-        // Real-time Database Sync
+        document.getElementById('nav-reserve').onclick = () => { show('booking-section'); hide('admin-section'); };
+        document.getElementById('nav-admin').onclick = () => { hide('booking-section'); show('admin-section'); };
+        document.getElementById('btn-checkout').onclick = () => { 
+            document.getElementById('modal-seat-count').innerText = selectedSeats.length;
+            show('booking-modal'); 
+        };
+        document.getElementById('btn-cancel').onclick = () => hide('booking-modal');
+
+        // Database Listener
         onSnapshot(bookingsRef, (snapshot) => {
             occupiedFromDB = [];
-            let revenue = 0;
+            let rev = 0;
             snapshot.forEach(doc => {
                 const data = doc.data();
                 occupiedFromDB.push(data.seatId);
-                revenue += (data.adults * 10) + (data.children * 5);
+                rev += (data.adults * 10) + (data.children * 5);
             });
-            renderGrid();
-            document.getElementById('report-revenue').innerText = revenue;
+            document.getElementById('report-revenue').innerText = rev;
             document.getElementById('report-count').innerText = occupiedFromDB.length;
+            renderGrid();
         });
 
         function renderGrid() {
             const grid = document.getElementById('seating-grid');
             grid.innerHTML = '';
-            const rows = ['A', 'B', 'C', 'D', 'E'];
-            
-            rows.forEach(row => {
-                for (let i = 1; i <= 8; i++) {
-                    const id = `${row}${i}`;
-                    const isOccupied = occupiedFromDB.includes(id);
-                    const isSelected = selectedSeats.includes(id);
-
+            ['A','B','C','D','E'].forEach(row => {
+                for(let i=1; i<=8; i++) {
+                    const id = row + i;
+                    const isTaken = occupiedFromDB.includes(id);
+                    const isSel = selectedSeats.includes(id);
                     const seat = document.createElement('div');
-                    seat.className = `seat w-10 h-10 rounded-md flex items-center justify-center text-[10px] font-bold 
-                        ${isOccupied ? 'occupied text-white' : (isSelected ? 'selected' : 'bg-green-500 text-white')}`;
+                    seat.className = `seat w-10 h-10 rounded-md flex items-center justify-center text-[10px] font-bold shadow-sm 
+                        ${isTaken ? 'occupied text-white' : (isSel ? 'selected' : 'bg-green-500 text-white')}`;
                     seat.innerText = id;
-
-                    if (!isOccupied) {
-                        seat.onclick = () => {
-                            if (selectedSeats.includes(id)) {
-                                selectedSeats = selectedSeats.filter(s => s !== id);
-                            } else {
-                                selectedSeats.push(id);
-                            }
-                            updateBar();
-                            renderGrid();
-                        };
-                    }
+                    if(!isTaken) seat.onclick = () => toggleSeat(id);
                     grid.appendChild(seat);
                 }
             });
         }
 
-        function updateBar() {
+        function toggleSeat(id) {
+            if(selectedSeats.includes(id)) selectedSeats = selectedSeats.filter(s => s !== id);
+            else selectedSeats.push(id);
+            
             const bar = document.getElementById('purchase-bar');
-            if (selectedSeats.length > 0) {
+            if(selectedSeats.length > 0) {
                 bar.classList.remove('hidden');
-                document.getElementById('selected-list-text').innerText = selectedSeats.join(', ');
+                document.getElementById('selected-list-text').innerText = "Selected: " + selectedSeats.join(', ');
                 document.getElementById('bar-total').innerText = selectedSeats.length * 10;
             } else {
                 bar.classList.add('hidden');
             }
+            renderGrid();
         }
 
-        // Action Buttons
-        document.getElementById('btn-checkout').onclick = () => {
-            document.getElementById('modal-seat-count').innerText = selectedSeats.length;
-            document.getElementById('booking-modal').classList.remove('hidden');
-        };
-
-        document.getElementById('btn-cancel').onclick = () => {
-            document.getElementById('booking-modal').classList.add('hidden');
-        };
-
+        // SAVE DATA
         document.getElementById('btn-confirm').onclick = async () => {
             const name = document.getElementById('user-name').value;
-            const adults = parseInt(document.getElementById('adult-count').value) || 0;
-            const children = parseInt(document.getElementById('child-count').value) || 0;
+            if(!name) return alert("Enter a name!");
 
-            if (!name) return alert("Please enter a name.");
-            
             try {
-                // Loop through and save all selected seats
-                for (let seat of selectedSeats) {
+                for(let s of selectedSeats) {
                     await addDoc(bookingsRef, {
-                        seatId: seat,
-                        userName: name,
-                        adults: adults / selectedSeats.length, // Distribute count
-                        children: children / selectedSeats.length,
+                        seatId: s,
+                        name: name,
+                        adults: parseInt(document.getElementById('adult-count').value) / selectedSeats.length,
+                        children: parseInt(document.getElementById('child-count').value) / selectedSeats.length,
                         timestamp: new Date()
                     });
                 }
-                alert("Purchased Successfully!");
+                alert("Booked!");
                 selectedSeats = [];
-                updateBar();
-                document.getElementById('booking-modal').classList.add('hidden');
-            } catch (e) {
-                alert("Error connecting to database. Check your Firebase Config!");
-            }
+                hide('booking-modal');
+                hide('purchase-bar');
+            } catch(e) { alert("Error! Check your Firebase config."); }
         };
 
         document.getElementById('btn-reset').onclick = async () => {
-            if(confirm("Wipe all data?")) {
-                const snap = await getDocs(bookingsRef);
-                snap.forEach(async d => await deleteDoc(doc(db, "bookings", d.id)));
+            if(confirm("Wipe data?")) {
+                const s = await getDocs(bookingsRef);
+                s.forEach(async d => await deleteDoc(doc(db, "bookings", d.id)));
             }
         };
     </script>
+</body>
+</html>
 </body>
 </html>
