@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SeatSync | School Play Ticketing</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .seat { transition: all 0.3s ease; }
+        .seat:hover:not(.occupied) { transform: scale(1.1); cursor: pointer; }
+        .occupied { background-color: #ef4444 !important; cursor: not-allowed; } /* Red */
+        .selected { background-color: #a855f7 !important; border: 2px solid black; } /* Purple */
+    </style>
+</head>
+<body class="bg-white text-black min-h-screen font-sans">
+
+    <nav class="bg-purple-700 text-white p-4 shadow-lg">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold tracking-tight">SeatSync</h1>
+            <div class="space-x-4">
+                <button onclick="showSection('booking')" class="hover:underline">Book Seats</button>
+                <button onclick="showSection('admin')" class="hover:underline text-gray-200">Admin Report</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto p-6">
+        
+        <section id="booking-section">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-extrabold text-gray-900">Select Your Seats</h2>
+                <p class="text-gray-600">Click a green seat to start your booking.</p>
+            </div>
+
+            <div class="flex justify-center gap-6 mb-8">
+                <div class="flex items-center gap-2"><div class="w-5 h-5 bg-green-500 rounded"></div><span>Available</span></div>
+                <div class="flex items-center gap-2"><div class="w-5 h-5 bg-red-500 rounded"></div><span>Taken</span></div>
+                <div class="flex items-center gap-2"><div class="w-5 h-5 bg-purple-500 rounded"></div><span>Your Selection</span></div>
+            </div>
+
+            <div class="bg-gray-100 p-8 rounded-xl max-w-2xl mx-auto shadow-inner">
+                <div id="seating-grid" class="grid grid-cols-8 gap-4 justify-items-center">
+                    </div>
+                <div class="mt-8 w-full bg-gray-400 h-2 rounded-full text-center text-xs text-white pt-0.5">STAGE</div>
+            </div>
+
+            <div id="booking-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+                <div class="bg-white p-8 rounded-2xl max-w-md w-full border-t-8 border-purple-600">
+                    <h3 class="text-xl font-bold mb-4">Complete Booking for Seat <span id="selected-seat-label"></span></h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Adult Tickets ($10)</label>
+                            <input type="number" id="adult-count" min="0" value="1" class="w-full border-gray-300 rounded-lg p-2 border">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Child Tickets ($5)</label>
+                            <input type="number" id="child-count" min="0" value="0" class="w-full border-gray-300 rounded-lg p-2 border">
+                        </div>
+                        <button onclick="confirmBooking()" class="w-full bg-purple-600 text-white font-bold py-3 rounded-lg hover:bg-purple-700">Confirm & Pay</button>
+                        <button onclick="closeModal()" class="w-full text-gray-500 text-sm italic">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="admin-section" class="hidden">
+            <h2 class="text-3xl font-extrabold mb-6">Revenue Report</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-purple-50 p-6 rounded-xl border border-purple-100">
+                    <p class="text-purple-600 text-sm font-bold uppercase">Total Revenue</p>
+                    <p class="text-3xl font-black">$<span id="report-revenue">0</span></p>
+                </div>
+                <div class="bg-gray-50 p-6 rounded-xl border border-gray-100">
+                    <p class="text-gray-600 text-sm font-bold uppercase">Tickets Sold</p>
+                    <p class="text-3xl font-black" id="report-count">0</p>
+                </div>
+            </div>
+            <button onclick="clearAllData()" class="bg-red-100 text-red-600 px-4 py-2 rounded-lg font-medium hover:bg-red-200">
+                Clear All Bookings (Danger Zone)
+            </button>
+        </section>
+
+    </main>
+
+    <script>
+        // MOCK DATA for Phase 1
+        let bookings = [
+            { id: "A3", type: "occupied" },
+            { id: "B5", type: "occupied" }
+        ];
+
+        const rows = ['A', 'B', 'C', 'D', 'E'];
+        const cols = 8;
+        let selectedSeat = null;
+
+        // Initialize Grid
+        function initGrid() {
+            const grid = document.getElementById('seating-grid');
+            grid.innerHTML = '';
+            
+            rows.forEach(row => {
+                for (let i = 1; i <= cols; i++) {
+                    const seatId = `${row}${i}`;
+                    const isOccupied = bookings.find(b => b.id === seatId);
+                    
+                    const btn = document.createElement('div');
+                    btn.id = seatId;
+                    btn.className = `seat w-10 h-10 rounded-md flex items-center justify-center text-[10px] font-bold ${isOccupied ? 'occupied' : 'bg-green-500 text-white'}`;
+                    btn.innerText = seatId;
+                    
+                    if (!isOccupied) {
+                        btn.onclick = () => openBooking(seatId);
+                    }
+                    grid.appendChild(btn);
+                }
+            });
+        }
+
+        function openBooking(id) {
+            selectedSeat = id;
+            document.getElementById('selected-seat-label').innerText = id;
+            document.getElementById('booking-modal').classList.remove('hidden');
+            console.log(`Database Log: User clicked seat ${id}. Awaiting input...`);
+        }
+
+        function closeModal() {
+            document.getElementById('booking-modal').classList.add('hidden');
+        }
+
+        function confirmBooking() {
+            const adults = document.getElementById('adult-count').value;
+            const children = document.getElementById('child-count').value;
+            
+            console.log(`Database Action: Saving ${adults} Adults and ${children} Children to seat ${selectedSeat}`);
+            alert(`Confirmed! Seat ${selectedSeat} booked.`);
+            closeModal();
+            // In Phase 3, this will update Firestore
+        }
+
+        function showSection(type) {
+            if(type === 'admin') {
+                document.getElementById('booking-section').classList.add('hidden');
+                document.getElementById('admin-section').classList.remove('hidden');
+            } else {
+                document.getElementById('booking-section').classList.remove('hidden');
+                document.getElementById('admin-section').classList.add('hidden');
+            }
+        }
+
+        function clearAllData() {
+            if(confirm("Are you sure? This will wipe the database.")) {
+                console.log("Database Action: DELETE ALL");
+                alert("Data cleared (Mock)");
+            }
+        }
+
+        initGrid();
+    </script>
+</body>
+</html>
