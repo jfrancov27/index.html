@@ -6,7 +6,8 @@
     <title>SeatSync Pro | School Play</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .seat { transition: all 0.2s ease; }
+        .seat { transition: all 0.2s ease; cursor: pointer; }
+        .seat:hover:not(.occupied) { transform: scale(1.1); background-color: #a855f7; }
         .occupied { background-color: #ef4444 !important; cursor: not-allowed; opacity: 0.6; }
         .stage-glow { background: linear-gradient(180deg, rgba(168, 85, 247, 0.4) 0%, rgba(255,255,255,0) 100%); }
     </style>
@@ -20,14 +21,13 @@
                 <h1 class="text-xl font-bold tracking-tighter">SEATSYNC</h1>
             </div>
             <div class="flex gap-4 text-sm font-medium">
-                <button onclick="showSection('booking')" class="opacity-90 hover:opacity-100">Reserve</button>
-                <button onclick="showSection('admin')" class="bg-purple-600 px-3 py-1 rounded-md hover:bg-purple-500">Admin Panel</button>
+                <button id="nav-reserve" class="opacity-90 hover:opacity-100">Reserve</button>
+                <button id="nav-admin" class="bg-purple-600 px-3 py-1 rounded-md hover:bg-purple-500">Admin Panel</button>
             </div>
         </div>
     </nav>
 
     <main class="container mx-auto p-4 md:p-8">
-        
         <section id="booking-section">
             <div class="text-center mb-10">
                 <h2 class="text-4xl font-black text-slate-800 mb-2">School Play 2026</h2>
@@ -51,7 +51,7 @@
                     <h2 class="text-3xl font-black">Financial Dashboard</h2>
                     <p class="text-slate-500">Real-time ticket sales tracking</p>
                 </div>
-                <button onclick="clearAllData()" class="text-xs text-red-500 font-bold border border-red-200 px-2 py-1 rounded hover:bg-red-50">RESET SYSTEM</button>
+                <button id="btn-reset" class="text-xs text-red-500 font-bold border border-red-200 px-2 py-1 rounded hover:bg-red-50">RESET SYSTEM</button>
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
@@ -70,47 +70,141 @@
     <div id="booking-modal" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
         <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden">
             <div class="bg-purple-700 p-6 text-white text-center">
-                <p class="text-purple-200 text-xs uppercase font-bold tracking-widest">Confirm Reservation</p>
                 <h3 class="text-3xl font-black">Seat <span id="selected-seat-label"></span></h3>
             </div>
             <div class="p-6 space-y-4">
                 <div>
                     <label class="block text-xs font-bold text-slate-500 mb-1">YOUR NAME</label>
-                    <input type="text" id="user-name" placeholder="John Doe" class="w-full border-2 border-slate-100 rounded-xl p-3 focus:border-purple-500 outline-none transition-colors">
+                    <input type="text" id="user-name" placeholder="Name" class="w-full border-2 border-slate-100 rounded-xl p-3 outline-none">
                 </div>
                 <div class="flex gap-4">
                     <div class="flex-1">
                         <label class="block text-xs font-bold text-slate-500 mb-1">ADULTS ($10)</label>
-                        <input type="number" id="adult-count" oninput="updateTotal()" min="0" value="1" class="w-full border-2 border-slate-100 rounded-xl p-3">
+                        <input type="number" id="adult-count" min="0" value="1" class="w-full border-2 border-slate-100 rounded-xl p-3">
                     </div>
                     <div class="flex-1">
                         <label class="block text-xs font-bold text-slate-500 mb-1">CHILDREN ($5)</label>
-                        <input type="number" id="child-count" oninput="updateTotal()" min="0" value="0" class="w-full border-2 border-slate-100 rounded-xl p-3">
+                        <input type="number" id="child-count" min="0" value="0" class="w-full border-2 border-slate-100 rounded-xl p-3">
                     </div>
                 </div>
                 <div class="bg-slate-50 p-4 rounded-2xl flex justify-between items-center">
-                    <span class="font-bold text-slate-700">Total Due:</span>
+                    <span class="font-bold text-slate-700">Total:</span>
                     <span class="text-2xl font-black text-purple-700">$<span id="live-total">10</span></span>
                 </div>
-                <button onclick="confirmBooking()" class="w-full bg-purple-600 text-white font-black py-4 rounded-2xl hover:bg-purple-700 shadow-lg shadow-purple-200 transition-all active:scale-95">CONFIRM BOOKING</button>
-                <button onclick="closeModal()" class="w-full text-slate-400 text-sm font-medium">Changed my mind</button>
+                <button id="btn-confirm" class="w-full bg-purple-600 text-white font-black py-4 rounded-2xl hover:bg-purple-700 transition-all">CONFIRM</button>
+                <button id="btn-cancel" class="w-full text-slate-400 text-sm font-medium">Cancel</button>
             </div>
         </div>
     </div>
 
     <script type="module">
-        // Firebase code goes here (Same as previous step, but adding the 'name' field to addDoc)
-        // ... (Refer to previous code for Firestore logic)
-    </script>
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, onSnapshot, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    <script>
+        // --- PASTE YOUR FIREBASE CONFIG HERE ---
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const bookingsRef = collection(db, "bookings");
+
+        let selectedSeatId = null;
+
+        // UI Logic for Switching Sections
+        document.getElementById('nav-reserve').onclick = () => {
+            document.getElementById('booking-section').classList.remove('hidden');
+            document.getElementById('admin-section').classList.add('hidden');
+        };
+        document.getElementById('nav-admin').onclick = () => {
+            document.getElementById('booking-section').classList.add('hidden');
+            document.getElementById('admin-section').classList.remove('hidden');
+        };
+
+        // Modal Logic
+        const closeModal = () => document.getElementById('booking-modal').classList.add('hidden');
+        document.getElementById('btn-cancel').onclick = closeModal;
+
+        // Real-time Grid Update
+        onSnapshot(bookingsRef, (snapshot) => {
+            const taken = [];
+            let revenue = 0;
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                taken.push(data.seatId);
+                revenue += (data.adults * 10) + (data.children * 5);
+            });
+
+            renderGrid(taken);
+            document.getElementById('report-revenue').innerText = revenue;
+            document.getElementById('report-count').innerText = taken.length;
+        });
+
+        function renderGrid(taken) {
+            const grid = document.getElementById('seating-grid');
+            grid.innerHTML = '';
+            const rows = ['A', 'B', 'C', 'D', 'E'];
+            
+            rows.forEach(row => {
+                for (let i = 1; i <= 8; i++) {
+                    const id = `${row}${i}`;
+                    const isOccupied = taken.includes(id);
+                    const seat = document.createElement('div');
+                    seat.className = `seat w-10 h-10 rounded-md flex items-center justify-center text-[10px] font-bold ${isOccupied ? 'occupied text-white' : 'bg-green-500 text-white'}`;
+                    seat.innerText = id;
+                    if(!isOccupied) {
+                        seat.onclick = () => {
+                            selectedSeatId = id;
+                            document.getElementById('selected-seat-label').innerText = id;
+                            document.getElementById('booking-modal').classList.remove('hidden');
+                        };
+                    }
+                    grid.appendChild(seat);
+                }
+            });
+        }
+
+        // Save to Firebase
+        document.getElementById('btn-confirm').onclick = async () => {
+            const name = document.getElementById('user-name').value;
+            const adults = parseInt(document.getElementById('adult-count').value) || 0;
+            const children = parseInt(document.getElementById('child-count').value) || 0;
+
+            if(!name) return alert("Please enter your name!");
+
+            await addDoc(bookingsRef, {
+                seatId: selectedSeatId,
+                name,
+                adults,
+                children,
+                timestamp: new Date()
+            });
+            closeModal();
+        };
+
+        // Reset Logic
+        document.getElementById('btn-reset').onclick = async () => {
+            if(confirm("Wipe all data?")) {
+                const snap = await getDocs(bookingsRef);
+                snap.forEach(async d => await deleteDoc(doc(db, "bookings", d.id)));
+            }
+        };
+
+        // Live Total Calculation
+        document.getElementById('adult-count').oninput = updateTotal;
+        document.getElementById('child-count').oninput = updateTotal;
         function updateTotal() {
             const a = document.getElementById('adult-count').value || 0;
             const c = document.getElementById('child-count').value || 0;
             document.getElementById('live-total').innerText = (a * 10) + (c * 5);
         }
-        
-        // Modal and Section logic from previous step...
     </script>
 </body>
+</html>
 </html>
